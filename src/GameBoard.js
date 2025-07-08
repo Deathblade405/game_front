@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import './App.css';
@@ -145,10 +146,21 @@ export default function GameBoard({ gameId }) {
     return d;
   };
 
+  const handleTouch = (e) => {
+    const rect = e.target.getBoundingClientRect();
+    const touch = e.touches[0];
+    const x = touch.clientX - rect.left;
+    const y = touch.clientY - rect.top;
+    const r = Math.floor(y / (rect.height / GRID_SIZE));
+    const c = Math.floor(x / (rect.width / GRID_SIZE));
+    handleTile(r, c);
+  };
+
   return (
     <div
       onMouseUp={() => setDragging(false)}
       onMouseLeave={() => setDragging(false)}
+      onTouchEnd={() => setDragging(false)}
       style={{
         userSelect: "none",
         display: "flex",
@@ -160,26 +172,13 @@ export default function GameBoard({ gameId }) {
         margin: "0 auto"
       }}
     >
-      {/* Game UI */}
       <div>
         <h2>Player Mode</h2>
-
         <div
           className="grid-container"
           style={{ position: "relative", width: 300, height: 300 }}
         >
-          {/* Smooth SVG Path */}
-          <svg
-            className="path-svg"
-            style={{
-              position: "absolute",
-              top: 0,
-              left: 0,
-              width: "100%",
-              height: "100%",
-              pointerEvents: "none",
-            }}
-          >
+          <svg className="path-svg">
             <path
               d={generateSmoothPath()}
               fill="none"
@@ -191,8 +190,16 @@ export default function GameBoard({ gameId }) {
             />
           </svg>
 
-          {/* Grid Tiles */}
-          <div className="grid">
+          <div
+            className="grid"
+            onTouchStart={(e) => {
+              setDragging(true);
+              handleTouch(e);
+            }}
+            onTouchMove={(e) => {
+              if (dragging) handleTouch(e);
+            }}
+          >
             {grid.map((row, r) =>
               row.map((val, c) => (
                 <div
@@ -212,7 +219,6 @@ export default function GameBoard({ gameId }) {
             )}
           </div>
         </div>
-
         <div style={{ marginTop: "1rem" }}>
           <button onClick={clearAttempt}>Clear</button>
           <button onClick={submit}>Submit</button>
@@ -220,7 +226,6 @@ export default function GameBoard({ gameId }) {
         </div>
       </div>
 
-      {/* Side Panel: Timers */}
       <div style={{ minWidth: "200px", textAlign: "center" }}>
         <h3>Main Timer</h3>
         <p>{mainTimer}s</p>
