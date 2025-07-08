@@ -1,25 +1,42 @@
-import logo from './logo.svg';
+import React, { useState } from 'react';
+import GameBoard from './GameBoard';
+import CreateGame from './CreateGame';
 import './App.css';
+export default function App() {
+  const [gameId, setGameId] = useState("");
+  const [mode, setMode] = useState(""); // "", "boss", "player"
 
-function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+  const [inputGameId, setInputGameId] = useState("");
+
+  if (mode === "") {
+    return (
+      <div className="app">
+        <h1>Connect game</h1>
+        <button onClick={() => setMode("boss")}>Create Game (Boss)</button>
+        <button onClick={() => setMode("player")}>Join Game (Player)</button>
+      </div>
+    );
+  }
+
+  if (mode === "boss" && !gameId) {
+    return <CreateGame onGameCreated={setGameId} />;
+  }
+
+  if (mode === "player" && !gameId) {
+    return (
+      <div className="app">
+        <h2>Enter Game ID</h2>
+        <input
+          type="text"
+          placeholder="Game ID"
+          value={inputGameId}
+          onChange={(e) => setInputGameId(e.target.value)}
+        />
+        <button onClick={() => setGameId(inputGameId)}>Play</button>
+        <button onClick={() => setMode("")}>⬅ Back</button>
+      </div>
+    );
+  }
+
+  return <GameBoard gameId={gameId} />;
 }
-
-export default App;
