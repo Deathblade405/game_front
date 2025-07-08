@@ -24,7 +24,7 @@ export default function GameBoard({ gameId }) {
 
   useEffect(() => {
     const loadGame = async () => {
-      const res = await axios.get(`http://localhost:8000/games/${gameId}`);
+      const res = await axios.get(`https://game-back-rwzz.onrender.com/games/${gameId}`);
       const game = res.data;
       const g = Array(GRID_SIZE).fill(null).map(() => Array(GRID_SIZE).fill(null));
       game.numberedTiles.forEach((tile) => {
@@ -108,7 +108,7 @@ export default function GameBoard({ gameId }) {
       return;
     }
 
-    await axios.post(`http://localhost:8000/games/${gameId}/attempt`, {
+    await axios.post(`https://game-back-rwzz.onrender.com/games/${gameId}/attempt`, {
       player: "Ajith",
       path,
       duration: subTime,

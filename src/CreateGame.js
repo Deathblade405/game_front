@@ -33,7 +33,7 @@ export default function CreateGame({ onGameCreated }) {
       return;
     }
     try {
-      const res = await axios.post("http://localhost:8000/games/", {
+      const res = await axios.post("https://game-back-rwzz.onrender.com/games/", {
         creator,
         maxNumber,
         numberedTiles: selectedTiles
