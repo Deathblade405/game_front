@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import './App.css';
@@ -33,8 +32,7 @@ export default function GameBoard({ gameId }) {
         g[r][c] = tile.number;
       });
       setGrid(g);
-      const now = Date.now();
-      setStartTime(now);
+      setStartTime(Date.now());
       setMainTimer(0);
       setAttempts([]);
       setAttemptCount(1);
@@ -58,7 +56,6 @@ export default function GameBoard({ gameId }) {
   const handleTile = (r, c) => {
     const curr = [r, c];
     if (isInPath(r, c)) return;
-
     if (currentTarget > maxNumber) return;
 
     if (path.length === 0) {
@@ -72,7 +69,6 @@ export default function GameBoard({ gameId }) {
     if (!isAdjacent(last, curr)) return;
 
     const cellValue = grid[r][c];
-
     if (cellValue) {
       if (cellValue !== currentTarget) return;
       setCurrentTarget(currentTarget + 1);
@@ -81,26 +77,29 @@ export default function GameBoard({ gameId }) {
     if (currentTarget > maxNumber) return;
 
     setPath((prev) => [...prev, curr]);
+
+    // Auto-detect success
+    if (path.length + 1 === 25 && currentTarget === maxNumber) {
+      onSuccess([...path, curr]);
+    }
   };
 
-  const checkValid = () => {
-    if (path.length !== 25) return false;
+  const checkValid = (submittedPath) => {
+    if (submittedPath.length !== 25) return false;
     const visited = new Set();
-    path.forEach(([r, c]) => {
+    submittedPath.forEach(([r, c]) => {
       const val = grid[r][c];
       if (val) visited.add(val);
     });
-    const maxVal = Math.max(...grid.flat().filter(Boolean));
-    for (let i = 1; i <= maxVal; i++) {
+    for (let i = 1; i <= maxNumber; i++) {
       if (!visited.has(i)) return false;
     }
     return true;
   };
 
-  const submit = async () => {
+  const onSuccess = async (finalPath) => {
     const subTime = (Date.now() - startTime) / 1000;
-    setTimerStopped(true);
-    const valid = checkValid();
+    const valid = checkValid(finalPath);
 
     if (!valid) {
       alert("❌ Invalid path! Must use all tiles and all numbers.");
@@ -109,20 +108,32 @@ export default function GameBoard({ gameId }) {
       return;
     }
 
+    setTimerStopped(true);
+
     await axios.post(`https://game-back-rwzz.onrender.com/games/${gameId}/attempt`, {
       player: "Ajith",
-      path,
+      path: finalPath,
       duration: subTime,
       successful: true,
       mainTime: subTime
     });
 
-    alert("✅ Success! Time: " + subTime.toFixed(2) + "s");
-    setPath([]);
-    setCurrentTarget(1);
+    const again = window.confirm(`🎉 Congrats! You completed the game in ${subTime.toFixed(2)}s.\nDo you want to play again?`);
+
+    if (again) {
+      setPath([]);
+      setCurrentTarget(1);
+      setAttemptCount(1);
+      setAttempts([]);
+      setStartTime(Date.now());
+      setTimerStopped(false);
+    } else {
+      window.location.href = "/dashboard";
+    }
   };
 
   const clearAttempt = () => {
+    if (timerStopped) return;
     const currentTime = ((Date.now() - startTime) / 1000).toFixed(1);
     setAttempts((prev) => [...prev, { attempt: attemptCount, time: currentTime }]);
     setAttemptCount((prev) => prev + 1);
@@ -146,125 +157,99 @@ export default function GameBoard({ gameId }) {
     return d;
   };
 
-  const handleTouch = (e) => {
-    const rect = e.target.getBoundingClientRect();
-    const touch = e.touches[0];
-    const x = touch.clientX - rect.left;
-    const y = touch.clientY - rect.top;
-    const r = Math.floor(y / (rect.height / GRID_SIZE));
-    const c = Math.floor(x / (rect.width / GRID_SIZE));
-    handleTile(r, c);
-  };
-
   return (
-  <div
-    onMouseUp={() => setDragging(false)}
-    onMouseLeave={() => setDragging(false)}
-    onTouchEnd={() => setDragging(false)}
-    style={{
-      userSelect: "none",
-      display: "flex",
-      flexWrap: "wrap",
-      justifyContent: "center",
-      gap: "2rem",
-      width: "100%",
-      maxWidth: "900px",
-      margin: "0 auto",
-    }}
-  >
-    {/* Game UI */}
-    <div>
-      <h2>Player Mode</h2>
-
-      <div
-        className="grid-container"
-        style={{ position: "relative", width: 300, height: 300 }}
-        onTouchStart={(e) => {
-          setDragging(true);
-          const touch = e.touches[0];
-          const rect = e.target.getBoundingClientRect();
-          const x = touch.clientX - rect.left;
-          const y = touch.clientY - rect.top;
-          const col = Math.floor((x / rect.width) * GRID_SIZE);
-          const row = Math.floor((y / rect.height) * GRID_SIZE);
-          handleTile(row, col);
-        }}
-        onTouchMove={(e) => {
-          if (!dragging) return;
-          const touch = e.touches[0];
-          const rect = e.target.getBoundingClientRect();
-          const x = touch.clientX - rect.left;
-          const y = touch.clientY - rect.top;
-          const col = Math.floor((x / rect.width) * GRID_SIZE);
-          const row = Math.floor((y / rect.height) * GRID_SIZE);
-          handleTile(row, col);
-        }}
-      >
-        {/* Smooth SVG Path */}
-        <svg
-          className="path-svg"
-          style={{
-            position: "absolute",
-            top: 0,
-            left: 0,
-            width: "100%",
-            height: "100%",
-            pointerEvents: "none",
-          }}
+    <div
+      onMouseUp={() => setDragging(false)}
+      onMouseLeave={() => setDragging(false)}
+      onTouchEnd={() => setDragging(false)}
+      style={{
+        userSelect: "none",
+        display: "flex",
+        flexWrap: "wrap",
+        justifyContent: "center",
+        gap: "2rem",
+        width: "100%",
+        maxWidth: "900px",
+        margin: "0 auto",
+      }}
+    >
+      <div>
+        <h2>Player Mode</h2>
+        <div
+          className="grid-container"
+          style={{ position: "relative", width: 300, height: 300 }}
         >
-          <path
-            d={generateSmoothPath()}
-            fill="none"
-            stroke="#00f279"
-            strokeWidth="6"
-            strokeLinejoin="round"
-            strokeLinecap="round"
-            style={{ filter: "drop-shadow(0 0 5px #00f279cc)" }}
-          />
-        </svg>
+          {/* Path SVG */}
+          <svg
+            className="path-svg"
+            style={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              width: "100%",
+              height: "100%",
+              pointerEvents: "none",
+            }}
+          >
+            <path
+              d={generateSmoothPath()}
+              fill="none"
+              stroke="red"
+              strokeWidth="25"
+              strokeLinejoin="round"
+              strokeLinecap="round"
+              opacity={0.5}
+              style={{ filter: "drop-shadow(0 0 5px rgba(242, 0, 0, 0.8))" }}
+            />
+          </svg>
 
-        {/* Grid Tiles */}
-        <div className="grid">
-          {grid.map((row, r) =>
-            row.map((val, c) => (
-              <div
-                key={`${r}-${c}`}
-                className="cell"
-                onMouseDown={() => {
-                  setDragging(true);
-                  handleTile(r, c);
-                }}
-                onMouseEnter={() => {
-                  if (dragging) handleTile(r, c);
-                }}
-              >
-                {val}
-              </div>
-            ))
-          )}
+          {/* Grid Tiles */}
+          <div className="grid">
+            {grid.map((row, r) =>
+              row.map((val, c) => (
+                <div
+                  key={`${r}-${c}`}
+                  className="cell"
+                  onMouseDown={() => {
+                    setDragging(true);
+                    handleTile(r, c);
+                  }}
+                  onMouseEnter={() => {
+                    if (dragging) handleTile(r, c);
+                  }}
+                  onTouchStart={() => {
+                    setDragging(true);
+                    handleTile(r, c);
+                  }}
+                  onTouchMove={() => {
+                    if (dragging) handleTile(r, c);
+                  }}
+                >
+                  {val}
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+
+        <div style={{ marginTop: "1rem" }}>
+          <button onClick={clearAttempt}>Clear</button>
+          <p>Tiles used: {path.length} / 25</p>
         </div>
       </div>
 
-      <div style={{ marginTop: "1rem" }}>
-        <button onClick={clearAttempt}>Clear</button>
-        <button onClick={submit}>Submit</button>
-        <p>Tiles used: {path.length} / 25</p>
+      <div style={{ minWidth: "200px", textAlign: "center" }}>
+        <h3>Main Timer</h3>
+        <p>{mainTimer}s</p>
+        <h4>Attempts</h4>
+        <ul>
+          {attempts.map((a) => (
+            <li key={a.attempt}>
+              Attempt {a.attempt}: {a.time}s
+            </li>
+          ))}
+        </ul>
       </div>
     </div>
-
-    {/* Side Panel: Timers */}
-    <div style={{ minWidth: "200px", textAlign: "center" }}>
-      <h3>Main Timer</h3>
-      <p>{mainTimer}s</p>
-      <h4>Attempts</h4>
-      <ul>
-        {attempts.map((a) => (
-          <li key={a.attempt}>
-            Attempt {a.attempt}: {a.time}s
-          </li>
-        ))}
-      </ul>
-    </div>
-  </div>
-);
+  );
 }
