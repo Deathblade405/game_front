@@ -157,87 +157,114 @@ export default function GameBoard({ gameId }) {
   };
 
   return (
-    <div
-      onMouseUp={() => setDragging(false)}
-      onMouseLeave={() => setDragging(false)}
-      onTouchEnd={() => setDragging(false)}
-      style={{
-        userSelect: "none",
-        display: "flex",
-        flexWrap: "wrap",
-        justifyContent: "center",
-        gap: "2rem",
-        width: "100%",
-        maxWidth: "900px",
-        margin: "0 auto"
-      }}
-    >
-      <div>
-        <h2>Player Mode</h2>
-        <div
-          className="grid-container"
-          style={{ position: "relative", width: 300, height: 300 }}
-        >
-          <svg className="path-svg">
-            <path
-              d={generateSmoothPath()}
-              fill="none"
-              stroke="#00f279"
-              strokeWidth="6"
-              strokeLinejoin="round"
-              strokeLinecap="round"
-              style={{ filter: "drop-shadow(0 0 5px #00f279cc)" }}
-            />
-          </svg>
+  <div
+    onMouseUp={() => setDragging(false)}
+    onMouseLeave={() => setDragging(false)}
+    onTouchEnd={() => setDragging(false)}
+    style={{
+      userSelect: "none",
+      display: "flex",
+      flexWrap: "wrap",
+      justifyContent: "center",
+      gap: "2rem",
+      width: "100%",
+      maxWidth: "900px",
+      margin: "0 auto",
+    }}
+  >
+    {/* Game UI */}
+    <div>
+      <h2>Player Mode</h2>
 
-          <div
-            className="grid"
-            onTouchStart={(e) => {
-              setDragging(true);
-              handleTouch(e);
-            }}
-            onTouchMove={(e) => {
-              if (dragging) handleTouch(e);
-            }}
-          >
-            {grid.map((row, r) =>
-              row.map((val, c) => (
-                <div
-                  key={`${r}-${c}`}
-                  className="cell"
-                  onMouseDown={() => {
-                    setDragging(true);
-                    handleTile(r, c);
-                  }}
-                  onMouseEnter={() => {
-                    if (dragging) handleTile(r, c);
-                  }}
-                >
-                  {val}
-                </div>
-              ))
-            )}
-          </div>
-        </div>
-        <div style={{ marginTop: "1rem" }}>
-          <button onClick={clearAttempt}>Clear</button>
-          <button onClick={submit}>Submit</button>
-          <p>Tiles used: {path.length} / 25</p>
+      <div
+        className="grid-container"
+        style={{ position: "relative", width: 300, height: 300 }}
+        onTouchStart={(e) => {
+          setDragging(true);
+          const touch = e.touches[0];
+          const rect = e.target.getBoundingClientRect();
+          const x = touch.clientX - rect.left;
+          const y = touch.clientY - rect.top;
+          const col = Math.floor((x / rect.width) * GRID_SIZE);
+          const row = Math.floor((y / rect.height) * GRID_SIZE);
+          handleTile(row, col);
+        }}
+        onTouchMove={(e) => {
+          if (!dragging) return;
+          const touch = e.touches[0];
+          const rect = e.target.getBoundingClientRect();
+          const x = touch.clientX - rect.left;
+          const y = touch.clientY - rect.top;
+          const col = Math.floor((x / rect.width) * GRID_SIZE);
+          const row = Math.floor((y / rect.height) * GRID_SIZE);
+          handleTile(row, col);
+        }}
+      >
+        {/* Smooth SVG Path */}
+        <svg
+          className="path-svg"
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            width: "100%",
+            height: "100%",
+            pointerEvents: "none",
+          }}
+        >
+          <path
+            d={generateSmoothPath()}
+            fill="none"
+            stroke="#00f279"
+            strokeWidth="6"
+            strokeLinejoin="round"
+            strokeLinecap="round"
+            style={{ filter: "drop-shadow(0 0 5px #00f279cc)" }}
+          />
+        </svg>
+
+        {/* Grid Tiles */}
+        <div className="grid">
+          {grid.map((row, r) =>
+            row.map((val, c) => (
+              <div
+                key={`${r}-${c}`}
+                className="cell"
+                onMouseDown={() => {
+                  setDragging(true);
+                  handleTile(r, c);
+                }}
+                onMouseEnter={() => {
+                  if (dragging) handleTile(r, c);
+                }}
+              >
+                {val}
+              </div>
+            ))
+          )}
         </div>
       </div>
 
-      <div style={{ minWidth: "200px", textAlign: "center" }}>
-        <h3>Main Timer</h3>
-        <p>{mainTimer}s</p>
-        <h4>Attempts</h4>
-        <ul>
-          {attempts.map((a) => (
-            <li key={a.attempt}>
-              Attempt {a.attempt}: {a.time}s
-            </li>
-          ))}
-        </ul>
+      <div style={{ marginTop: "1rem" }}>
+        <button onClick={clearAttempt}>Clear</button>
+        <button onClick={submit}>Submit</button>
+        <p>Tiles used: {path.length} / 25</p>
       </div>
     </div>
-  );
+
+    {/* Side Panel: Timers */}
+    <div style={{ minWidth: "200px", textAlign: "center" }}>
+      <h3>Main Timer</h3>
+      <p>{mainTimer}s</p>
+      <h4>Attempts</h4>
+      <ul>
+        {attempts.map((a) => (
+          <li key={a.attempt}>
+            Attempt {a.attempt}: {a.time}s
+          </li>
+        ))}
+      </ul>
+    </div>
+  </div>
+);
 }
