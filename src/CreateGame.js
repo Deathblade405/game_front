@@ -1,11 +1,15 @@
 import React, { useState } from "react";
 import axios from "axios";
-import './App.css'; // Assuming you have some styles in App.css
+import './App.css';
 
 export default function CreateGame({ onGameCreated }) {
-  const [creator, setCreator] = useState("Boss");
+  const [creator] = useState("Boss");
   const [maxNumber, setMaxNumber] = useState(4);
   const [selectedTiles, setSelectedTiles] = useState([]);
+
+  const [gameId, setGameId] = useState(null);
+  const [showModal, setShowModal] = useState(false);
+  const [copyText, setCopyText] = useState("Copy");
 
   const grid = Array(5).fill(null).map(() => Array(5).fill(null));
 
@@ -38,12 +42,25 @@ export default function CreateGame({ onGameCreated }) {
         maxNumber,
         numberedTiles: selectedTiles
       });
-      const gameId = res.data.game_id;
-      alert("Game created! Game ID: " + gameId);
-      onGameCreated(gameId);
+      const id = res.data.game_id;
+      setGameId(id);
+      setShowModal(true);
     } catch (err) {
       alert("Error creating game: " + err.message);
     }
+  };
+
+  const handleCopy = () => {
+    if (gameId) {
+      navigator.clipboard.writeText(gameId);
+      setCopyText("Copied!");
+      setTimeout(() => setCopyText("Copy"), 2000);
+    }
+  };
+
+  const handleCloseModal = () => {
+    setShowModal(false);
+    onGameCreated(gameId);
   };
 
   return (
@@ -79,6 +96,19 @@ export default function CreateGame({ onGameCreated }) {
         )}
       </div>
       <button onClick={createGame}>Create Game</button>
+
+      {/* Modal */}
+      {showModal && (
+        <div className="modal-backdrop">
+          <div className="modal">
+            <h3>🎮 Game Created!</h3>
+            <p><strong>Game ID:</strong></p>
+            <code>{gameId}</code>
+            <button className="copy" onClick={handleCopy}>{copyText}</button>
+            <button className="start" onClick={handleCloseModal}>Start Game</button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

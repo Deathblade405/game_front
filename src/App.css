@@ -251,3 +251,114 @@ p {
   color: white;
   font-weight: bold;
 }
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+}
+
+.modal {
+  background: #ffffff;
+  padding: 2rem;
+  width: 100%;
+  max-width: 400px;
+  border-radius: 16px;
+  text-align: center;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+  animation: fadeIn 0.3s ease;
+  font-family: "Segoe UI", sans-serif;
+}
+
+.modal h3 {
+  font-size: 1.5rem;
+  color: #009688;
+  margin-bottom: 0.75rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.modal p {
+  font-size: 1rem;
+  color: #555;
+  margin-bottom: 0.2rem;
+}
+
+.modal code {
+  display: block;
+  padding: 0.5rem 1rem;
+  background-color: #f4f4f4;
+  border-radius: 6px;
+  margin: 0.5rem auto 1rem;
+  width: fit-content;
+  font-size: 0.95rem;
+  word-break: break-word;
+}
+
+.modal button {
+  width: 100%;
+  padding: 12px;
+  font-size: 1rem;
+  border: none;
+  border-radius: 8px;
+  margin-top: 0.6rem;
+  cursor: pointer;
+  transition: background-color 0.25s ease;
+}
+
+.modal button.copy {
+  background-color: #00bfa5;
+  color: white;
+}
+
+.modal button.copy:hover {
+  background-color: #009688;
+}
+
+.modal button.start {
+  background-color: #ccc;
+  color: #333;
+}
+
+.modal button.start:hover {
+  background-color: #bdbdbd;
+}
+
+/* Animation */
+@keyframes fadeIn {
+  from {
+    transform: scale(0.95);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* Responsive Modal */
+@media (max-width: 480px) {
+  .modal {
+    padding: 1.5rem 1rem;
+    max-width: 95%;
+  }
+
+  .modal h3 {
+    font-size: 1.3rem;
+  }
+
+  .modal button {
+    padding: 10px;
+    font-size: 0.95rem;
+  }
+
+  .modal code {
+    font-size: 0.85rem;
+  }
+}

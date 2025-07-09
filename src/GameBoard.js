@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import axios from "axios";
 import './App.css';
 
@@ -21,6 +21,8 @@ export default function GameBoard({ gameId }) {
   const [attemptCount, setAttemptCount] = useState(1);
   const [timerStopped, setTimerStopped] = useState(false);
   const [maxNumber, setMaxNumber] = useState(null);
+
+  const gridRef = useRef(null); // 📌 Add ref for touch handling
 
   useEffect(() => {
     const loadGame = async () => {
@@ -78,10 +80,26 @@ export default function GameBoard({ gameId }) {
 
     setPath((prev) => [...prev, curr]);
 
-    // Auto-detect success
     if (path.length + 1 === 25 && currentTarget === maxNumber) {
       onSuccess([...path, curr]);
     }
+  };
+
+  const getTileFromTouch = (touch) => {
+    if (!gridRef.current) return null;
+    const rect = gridRef.current.getBoundingClientRect();
+    const cellSize = rect.width / GRID_SIZE;
+
+    const x = touch.clientX - rect.left;
+    const y = touch.clientY - rect.top;
+
+    const col = Math.floor(x / cellSize);
+    const row = Math.floor(y / cellSize);
+
+    if (row >= 0 && row < GRID_SIZE && col >= 0 && col < GRID_SIZE) {
+      return [row, col];
+    }
+    return null;
   };
 
   const checkValid = (submittedPath) => {
@@ -180,17 +198,7 @@ export default function GameBoard({ gameId }) {
           style={{ position: "relative", width: 300, height: 300 }}
         >
           {/* Path SVG */}
-          <svg
-            className="path-svg"
-            style={{
-              position: "absolute",
-              top: 0,
-              left: 0,
-              width: "100%",
-              height: "100%",
-              pointerEvents: "none",
-            }}
-          >
+          <svg className="path-svg">
             <path
               d={generateSmoothPath()}
               fill="none"
@@ -204,7 +212,16 @@ export default function GameBoard({ gameId }) {
           </svg>
 
           {/* Grid Tiles */}
-          <div className="grid">
+          <div
+            className="grid"
+            ref={gridRef}
+            onTouchMove={(e) => {
+              if (!dragging) return;
+              const touch = e.touches[0];
+              const tile = getTileFromTouch(touch);
+              if (tile) handleTile(tile[0], tile[1]);
+            }}
+          >
             {grid.map((row, r) =>
               row.map((val, c) => (
                 <div
@@ -220,9 +237,6 @@ export default function GameBoard({ gameId }) {
                   onTouchStart={() => {
                     setDragging(true);
                     handleTile(r, c);
-                  }}
-                  onTouchMove={() => {
-                    if (dragging) handleTile(r, c);
                   }}
                 >
                   {val}
