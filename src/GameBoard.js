@@ -1,5 +1,6 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, use } from "react";
 import axios from "axios";
+import { useAuth } from "./AuthContext"; // Assuming you have an AuthContext for user authentication
 import './App.css';
 
 const GRID_SIZE = 5;
@@ -21,7 +22,7 @@ export default function GameBoard({ gameId }) {
   const [attemptCount, setAttemptCount] = useState(1);
   const [timerStopped, setTimerStopped] = useState(false);
   const [maxNumber, setMaxNumber] = useState(null);
-
+  const { user } = useAuth(); // Assuming useAuth is defined in your context
   const gridRef = useRef(null); // 📌 Add ref for touch handling
 
   useEffect(() => {
@@ -129,7 +130,7 @@ export default function GameBoard({ gameId }) {
     setTimerStopped(true);
 
     await axios.post(`https://game-back-rwzz.onrender.com/games/${gameId}/attempt`, {
-      player: "Ajith",
+      player: user?.name || "unknown",
       path: finalPath,
       duration: subTime,
       successful: true,
