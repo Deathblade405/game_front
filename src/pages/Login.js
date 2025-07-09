@@ -6,6 +6,7 @@ import "./Login.css";
 
 export default function Login({ onRegister }) {
   const [form, setForm] = useState({ phone: "", password: "" });
+  const [showPassword, setShowPassword] = useState(false);
   const { login } = useAuth();
 
   const handleLogin = async () => {
@@ -27,13 +28,21 @@ export default function Login({ onRegister }) {
         value={form.phone}
         onChange={e => setForm({ ...form, phone: e.target.value })}
       />
-      <input
-        name="password"
-        type="password"
-        placeholder="Password"
-        value={form.password}
-        onChange={e => setForm({ ...form, password: e.target.value })}
-      />
+      <div className="password-wrapper">
+        <input
+          name="password"
+          type={showPassword ? "text" : "password"}
+          placeholder="Password"
+          value={form.password}
+          onChange={e => setForm({ ...form, password: e.target.value })}
+        />
+        <span
+          className="eye-icon"
+          onClick={() => setShowPassword(prev => !prev)}
+        >
+          {showPassword ? "🙈" : "👁"}
+        </span>
+      </div>
       <div className="auth-buttons">
         <button onClick={handleLogin}>Login</button>
         <button className="switch-btn" onClick={onRegister}>Register</button>

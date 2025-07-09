@@ -7,6 +7,7 @@ export default function Register({ onBack }) {
   const [form, setForm] = useState({
     name: "", gamer_key: "", phone: "", password: "", role: "player"
   });
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleChange = (e) =>
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -24,16 +25,31 @@ export default function Register({ onBack }) {
   return (
     <div className="auth-form">
       <h2>Register</h2>
-      {["name", "gamer_key", "phone", "password"].map(field => (
+      {["name", "gamer_key", "phone"].map(field => (
         <input
           key={field}
-          type={field === "password" ? "password" : "text"}
+          type="text"
           name={field}
           placeholder={field}
           value={form[field]}
           onChange={handleChange}
         />
       ))}
+      <div className="password-wrapper">
+        <input
+          type={showPassword ? "text" : "password"}
+          name="password"
+          placeholder="password"
+          value={form.password}
+          onChange={handleChange}
+        />
+        <span
+          className="eye-icon"
+          onClick={() => setShowPassword(prev => !prev)}
+        >
+          {showPassword ? "🙈" : "👁"}
+        </span>
+      </div>
       <select name="role" value={form.role} onChange={handleChange}>
         <option value="boss">Boss</option>
         <option value="player">Player</option>
